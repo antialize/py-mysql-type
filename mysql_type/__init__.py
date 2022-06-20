@@ -1,5 +1,5 @@
 import re
-from typing import Any, Iterable, Iterator, Optional, Protocol, TypeVar, Union, cast, List
+from typing import Any, Iterable, Iterator, Optional, Protocol, TypeVar, cast, List
 import MySQLdb
 import MySQLdb.cursors
 

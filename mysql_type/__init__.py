@@ -1,67 +1,52 @@
 import re
-from typing import Any, Iterable, Iterator, Optional, Protocol, TypeVar, cast, List
+from typing import Any, Iterable, Iterator, Optional, Protocol, TypeVar, Union, cast, List
 import MySQLdb
 import MySQLdb.cursors
 
 CursorType = TypeVar("CursorType", bound=MySQLdb.cursors.BaseCursor)
-T = TypeVar("T")
 
-class SelectResult(Protocol[T]):
+class RowCount(Protocol):
     rowcount: int
 
-    def fetchone(self) -> Optional[T]:
+R = TypeVar("R")
+class Fetch(Protocol[R]):
+    rowcount: int
+
+    def fetchone(self) -> Optional[R]:
         """
         Fetches a single row from the cursor. None indicates that
         no more rows are available.
         """
 
-    def fetchall(self) -> List[T]:
+    def fetchall(self) -> List[R]:
         """Fetchs all available rows from the cursor."""
 
-    def fetchmany(self, size: Optional[int] = None) -> List[T]:
+    def fetchmany(self, size: Optional[int] = None) -> List[R]:
         """
         Fetch up to size rows from the cursor. Result set may be smaller
         than size. If size is not defined, cursor.arraysize is used.
         """
 
-    def __iter__(self) -> Iterator[T]: ...
+    def __iter__(self) -> Iterator[R]: ...
 
-class OtherResult:
-    rowcount: int
+I = TypeVar("I")
+class LastRowId(Protocol[I]):
+    lastrowid: I
 
-class InsertWithLastRowIdResult:
-    rowcount: int
-    lastrowid: int
+class OtherResult(RowCount):
+    ...
 
-class InsertWithOptLastRowIdResult:
-    rowcount: int
-    lastrowid: Optional[int]
+class UntypedResult(RowCount, Fetch[Any], LastRowId[Optional[int]]):
+    ...
 
+class InsertResult(RowCount, LastRowId[I]):
+    ...
 
-class UntypedResult:
-    """
-    Return type of execute, if the mysql-type-plugin is not used by mypy
-    """
+class SelectResult(RowCount, Fetch[R]):
+    ...
 
-    rowcount: int
-    lastrowid: Optional[int]
-
-    def fetchone(self) -> Optional[Any]:
-        """
-        Fetches a single row from the cursor. None indicates that
-        no more rows are available.
-        """
-
-    def fetchall(self) -> List[Any]:
-        """Fetchs all available rows from the cursor."""
-
-    def fetchmany(self, size: Optional[int] = None) -> List[Any]:
-        """
-        Fetch up to size rows from the cursor. Result set may be smaller
-        than size. If size is not defined, cursor.arraysize is used.
-        """
-
-    def __iter__(self) -> Iterator[Any]: ...
+class InsertReturnResult(RowCount, LastRowId[I], Fetch[R]):
+    ...
 
 
 def execute(c: CursorType, sql: str, *args: Any) -> UntypedResult:

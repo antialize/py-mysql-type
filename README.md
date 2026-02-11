@@ -1,9 +1,3 @@
 # py-mysql-type
 
-Facilitate mysql typed queries
-
-
-TODO query example
-
-
-TODO explain `_LIST_`
+This project has moved to the qusql-py-mysql-type folder of https://github.com/antialize/qusql/
